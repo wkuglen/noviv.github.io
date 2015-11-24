@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>Game 1</title>
+    <script src="Babylon.js/dist/preview release/babylon.js"></script>
+    <link rel="stylesheet" type="text/css" href="css/game1.css">
+</head>
+<body>
+    <canvas id="canvas"></canvas>
+    <script>
+        if (!BABYLON.Engine.isSupported()) {
+            alert("WebGL not supported! Redirecting to homepage...");
+            window.location="noviv.github.io";
+        }
+        var canvas = document.getElementById("canvas");
+        var engine = new BABYLON.Engine(canvas, true);
+        var scene = new BABYLON.Scene(engine);
+        var camera = new BABYLON.ArcRotateCamera("Camera", 0, Math.PI / 2, 13, BABYLON.Vector3.Zero(), scene);
+        camera.attachControl(canvas, false);
+        var light = new BABYLON.HemisphericLight("light", new BABYLON.Vector3(0, 0.5, 0), scene);
+        var knot = BABYLON.Mesh.CreateTorusKnot("mesh", 2, 0.2, 500, 64, 6, 50, scene);
+        var material = new BABYLON.StandardMaterial("mat", scene);
+        knot.material = material;
+        material.diffuseColor = new BABYLON.Color3(1.5, 0, 0);
+        
+        var renderLoop = function() {
+            scene.render();
+        }
+        engine.runRenderLoop(renderLoop);
+        
+        var alpha = 0;
+        knot.scaling.y = 1.2;
+        scene.beforeRender = function() {
+            knot.rotation.y = Math.sin(alpha);
+            knot.rotation.z = Math.cos(alpha);
+            alpha += 0.03;
+        }
+    </script>
+</body>
+</html>
