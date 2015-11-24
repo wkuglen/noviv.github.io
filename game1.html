@@ -3,7 +3,10 @@
 <head>
 	<meta charset="UTF-8">
 	<title>Game 1</title>
-    <script src="Babylon.js/dist/preview release/babylon.js"></script>
+    <script src="lib/Babylon.js/dist/preview release/babylon.js"></script>
+    <script src="lib/Babylon.js/dist/preview release/cannon.js"></script>
+    <script src="lib/Babylon.js/dist/Oimo.js"></script>
+    <script src="lib/handjs/bin/hand.js"></script>
     <link rel="stylesheet" type="text/css" href="css/game1.css">
 </head>
 <body>
@@ -16,26 +19,51 @@
         var canvas = document.getElementById("canvas");
         var engine = new BABYLON.Engine(canvas, true);
         var scene = new BABYLON.Scene(engine);
-        var camera = new BABYLON.ArcRotateCamera("Camera", 0, Math.PI / 2, 13, BABYLON.Vector3.Zero(), scene);
-        camera.attachControl(canvas, false);
-        var light = new BABYLON.HemisphericLight("light", new BABYLON.Vector3(0, 0.5, 0), scene);
-        var knot = BABYLON.Mesh.CreateTorusKnot("mesh", 2, 0.2, 500, 64, 6, 50, scene);
-        var material = new BABYLON.StandardMaterial("mat", scene);
-        knot.material = material;
-        material.diffuseColor = new BABYLON.Color3(1.5, 0, 0);
+        var spot = new BABYLON.PointLight("spot", new BABYLON.Vector3(0, 30, 10), scene);
+        spot.diffuse = new BABYLON.Color3(1, 1, 1);
+        spot.specular = new BABYLON.Color3(0, 0, 0);
         
-        var renderLoop = function() {
+        var camera = new BABYLON.ArcRotateCamera("Camera", 0, 0.8, 100, BABYLON.Vector3.Zero(), scene);
+        camera.lowerBetaLimit = 0.1;
+        camera.upperBetaLimit = (Math.PI / 2) * 0.9;
+        camera.lowerRadiusLimit = 30;
+        camera.upperRadiusLimit = 150;
+        camera.attachControl(canvas, true);
+        
+        var groundMaterial = new BABYLON.StandardMaterial("ground", scene);
+        groundMaterial.diffuseTexture = new BABYLON.Texture("images/earth.jpg", scene);
+        
+        var ground = BABYLON.Mesh.CreateGroundFromHeightMap("ground", "images/worldHeightMap.jpg", 200, 200, 250, 0, 10, scene, false);
+        
+        var sun = BABYLON.Mesh.CreateSphere("sun", 10, 4, scene);
+        sun.material = new BABYLON.StandardMaterial("sun", scene);
+        sun.material.emissiveColor = new BABYLON.Color3(1, 1, 0);
+        /*
+        var skybox = BABYLON.Mesh.CreateBox("skyBox", 800.0, scene);
+        var skyboxMaterial = new BABYLON.StandardMaterial("skyBox", scene);
+        skyboxMaterial.backFaceCulling = false;
+        skyboxMaterial.reflectionTexture = new BABYLON.CubeTexture("images/skybox", scene);
+        skyboxMaterial.reflectionTexture.coordinatesMode = BABYLON.Texture.SKYBOX_MODE;
+        skyboxMaterial.diffuseColor = new BABYLON.Color3(0, 0, 0);
+        skyboxMaterial.specularColor = new BABYLON.Color3(0, 0, 0);
+        skyboxMaterial.disableLighting = true;
+        skybox.material = skyboxMaterial;
+        */
+        scene.registerBeforeRender(function() {
+            sun.position = spot.position;
+            spot.position.x -= 0.5;
+            if (spot.position.x < -90) {
+                spot.position.x = 100;
+            }
+        });
+        
+        engine.runRenderLoop(function() {
             scene.render();
-        }
-        engine.runRenderLoop(renderLoop);
+        });
         
-        var alpha = 0;
-        knot.scaling.y = 1.2;
-        scene.beforeRender = function() {
-            knot.rotation.y = Math.sin(alpha);
-            knot.rotation.z = Math.cos(alpha);
-            alpha += 0.03;
-        }
+        window.addEventListener("resize", function() {
+            engine.resize();
+        });
     </script>
 </body>
 </html>
